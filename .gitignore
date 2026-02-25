@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# IDE
+.idea/
+
+# Environment Variables
+.env
+
+# SQLite Database
+*.sqlite3
+
+# Celery
+celerybeat-schedule
+celerybeat-schedule.*
+
+# Gmail API
+token.pickle
+credentials.json
