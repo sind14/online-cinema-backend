@@ -5,9 +5,9 @@ from typing import List
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.database.session import get_db
-from app.models.user import User
+from app.models.users import User
 from app.core.config import settings
-from app.models.user_group import UserGroupEnum
+from app.models.user_groups import UserGroupEnum
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")

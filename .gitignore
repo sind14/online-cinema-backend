@@ -21,7 +21,3 @@ ENV/
 # Celery
 celerybeat-schedule
 celerybeat-schedule.*
-
-# Gmail API
-token.pickle
-credentials.json
