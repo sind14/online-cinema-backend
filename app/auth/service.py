@@ -7,9 +7,9 @@ from sqlalchemy.orm import Session
 from app.core.security import hash_password, verify_password
 from app.models.activation_tokens import ActivationToken
 from app.models.refresh_tokens import RefreshToken
-from app.models.user import User
-from app.models.user_group import UserGroup, UserGroupEnum
-from app.utils.gmail_service import get_gmail_service, send_email
+from app.models.users import User
+from app.models.user_groups import UserGroup, UserGroupEnum
+from app.utils.gmail_service import send_email
 from app.core.config import settings
 from app.auth.schemas import ChangePasswordSchema
 from app.models.password_reset_tokens import PasswordResetToken
@@ -22,8 +22,7 @@ REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
 
 
 def _send_email(to_email: str, subject: str, message: str) -> None:
-    service = get_gmail_service()
-    send_email(service, to_email, subject, message)
+    send_email(to_email, subject, message)
 
 
 def _validate_token_expiration(token_obj, db: Session):
