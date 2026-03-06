@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.auth import service as auth_service
 from app.auth.dependencies import get_current_user, require_role
-from app.models.user_group import UserGroupEnum
+from app.models.user_groups import UserGroupEnum
 from app.auth.schemas import (
     UserCreateSchema,
     LogoutSchema,
@@ -20,12 +20,6 @@ router = APIRouter()
 @router.post("/register")
 def register_user(data: UserCreateSchema, db: Session = Depends(get_db)):
     return auth_service.register(db, str(data.email), data.password)
-
-
-@router.get("/activate")
-def activate_user(token: str, db: Session = Depends(get_db)):
-    user = auth_service.activate_user(db, token)
-    return {"message": f"User {user.email} activated successfully."}
 
 
 @router.post("/reset-activation")
@@ -61,6 +55,12 @@ def forgot_password_route(data: ForgotPasswordSchema, db: Session = Depends(get_
 @router.post("/reset-password")
 def reset_password_route(data: ResetPasswordSchema, db: Session = Depends(get_db)):
     return auth_service.reset_password(db, data.token, data.new_password)
+
+
+@router.get("/activate")
+def activate_user(token: str, db: Session = Depends(get_db)):
+    user = auth_service.activate_user(db, token)
+    return {"message": f"User {user.email} activated successfully."}
 
 
 @router.get("/admin-only")
