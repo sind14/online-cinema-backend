@@ -12,6 +12,15 @@ from app.models.certifications import Certification
 class MovieService:
 
     @staticmethod
+    def _get_entities_or_404(db: Session, model, ids: list[int], field_name: str):
+        entities = db.query(model).filter(model.id.in_(ids)).all()
+
+        if len(entities) != len(ids):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"One or more {field_name} are invalid")
+
+        return entities
+
+    @staticmethod
     def get_all(
             db: Session,
             page: int = 1,
@@ -73,10 +82,7 @@ class MovieService:
         }
 
         if sort_by not in allowed_sort_fields:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid sort field: {sort_by}",
-            )
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid sort field: {sort_by}")
 
         sort_column = allowed_sort_fields[sort_by]
 
@@ -85,6 +91,7 @@ class MovieService:
         else:
             query = query.order_by(asc(sort_column))
 
+        query = query.distinct()
         total = query.count()
 
         movies = query.offset((page - 1) * page_size).limit(page_size).all()
@@ -110,29 +117,19 @@ class MovieService:
     def get_or_404(db, movie_id: int):
         movie = MovieService.get_by_id(db, movie_id)
         if not movie:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Movie with id {movie_id} not found",
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movie with id {movie_id} not found")
         return movie
 
     @staticmethod
     def create(db: Session, data):
-        certification = db.query(Certification).filter(Certification.id == data.certification_id).first()
+
+        certification = db.get(Certification, data.certification_id)
         if not certification:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid certification id")
 
-        genres = db.query(Genre).filter(Genre.id.in_(data.genre_ids)).all()
-        if len(genres) != len(data.genre_ids):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="One or more genre_ids are invalid")
-
-        stars = db.query(Star).filter(Star.id.in_(data.star_ids)).all()
-        if len(stars) != len(data.star_ids):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="One or more star_ids are invalid")
-
-        directors = db.query(Director).filter(Director.id.in_(data.director_ids)).all()
-        if len(directors) != len(data.director_ids):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="One or more director_ids are invalid")
+        genres = MovieService._get_entities_or_404(db, Genre, data.genre_ids, "genre_ids")
+        stars = MovieService._get_entities_or_404(db, Star, data.star_ids, "star_ids")
+        directors = MovieService._get_entities_or_404(db, Director, data.director_ids, "director_ids")
 
         movie = Movie(
             name=data.name,
@@ -162,31 +159,18 @@ class MovieService:
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
-            if field in [
-                "genres_ids",
-                "stars_ids",
-                "directors_ids",
-            ]:
+            if field in ["genre_ids", "star_ids", "director_ids"]:
                 continue
             setattr(movie, field, value)
 
         if data.genre_ids is not None:
-            genres = db.query(Genre).filter(Genre.id.in_(data.genre_ids)).all()
-            if len(genres) != len(data.genre_ids):
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid genre_ids")
-            movie.genres = genres
+            movie.genres = MovieService._get_entities_or_404(db, Genre, data.genre_ids, "genre_ids")
 
         if data.star_ids is not None:
-            stars = db.query(Star).filter(Star.id.in_(data.star_ids)).all()
-            if len(stars) != len(data.star_ids):
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid star_ids")
-            movie.stars = stars
+            movie.stars = MovieService._get_entities_or_404(db, Star, data.star_ids, "star_ids")
 
         if data.director_ids is not None:
-            directors = db.query(Director).filter(Director.id.in_(data.director_ids)).all()
-            if len(directors) != len(data.director_ids):
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid director_ids")
-            movie.directors = directors
+            movie.directors = MovieService._get_entities_or_404(db, Director, data.director_ids, "director_ids")
 
         db.commit()
         db.refresh(movie)
