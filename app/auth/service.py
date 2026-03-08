@@ -2,23 +2,28 @@ import secrets
 from jose import jwt
 from fastapi import HTTPException, status
 from datetime import timezone, datetime, timedelta
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
+from app.utils.gmail_service import send_email
+from app.auth.schemas import ChangePasswordSchema
 from app.core.security import hash_password, verify_password
+from app.core.config import settings
+from app.core.security import validate_password_complexity
 from app.models.activation_tokens import ActivationToken
 from app.models.refresh_tokens import RefreshToken
 from app.models.users import User
 from app.models.user_groups import UserGroup, UserGroupEnum
-from app.utils.gmail_service import send_email
-from app.core.config import settings
-from app.auth.schemas import ChangePasswordSchema
 from app.models.password_reset_tokens import PasswordResetToken
-from app.core.security import validate_password_complexity
+from app.models.carts import Cart
 
 SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.ACCESS_TOKEN_EXPIRE_MINUTES
 REFRESH_TOKEN_EXPIRE_DAYS = settings.REFRESH_TOKEN_EXPIRE_DAYS
+
+
+def _get_user_by_email(db: Session, email: str) -> User:
+    return db.execute(select(User).where(User.email == email)).scalar_one_or_none()
 
 
 def _send_email(to_email: str, subject: str, message: str) -> None:
@@ -28,37 +33,18 @@ def _send_email(to_email: str, subject: str, message: str) -> None:
 def _validate_token_expiration(token_obj, db: Session):
     expires_at = token_obj.expires_at
 
-    if expires_at.tzinfo is None:
-        expires_at = expires_at.replace(tzinfo=timezone.utc)
-
     if expires_at < datetime.now(timezone.utc):
         db.delete(token_obj)
-        db.commit()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired token",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
 
 
 def _delete_existing_token(model, user_id: int, db: Session) -> None:
-    existing_token = db.execute(
-        select(model).where(model.user_id == user_id)
-    ).scalar_one_or_none()
-
-    if existing_token:
-        db.delete(existing_token)
-        db.commit()
+    db.execute(delete(model).where(model.user_id == user_id))
 
 
 def register(db: Session, email: str, password: str):
-    existing_user = db.execute(
-        select(User).where(User.email == email)
-    ).scalar_one_or_none()
-    if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already exists",
-        )
+    if _get_user_by_email(db, email):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
 
     validate_password_complexity(password)
     hashed_password = hash_password(password)
@@ -68,16 +54,22 @@ def register(db: Session, email: str, password: str):
     ).scalar_one()
 
     user = User(
-        email=str(email),
+        email=email,
         hashed_password=hashed_password,
         is_active=False,
         group_id=group.id,
     )
     db.add(user)
+    db.flush()
+
+    cart = Cart(user_id=user.id)
+    db.add(cart)
+
+    token = create_activation_token(db, user.id)
+
     db.commit()
     db.refresh(user)
 
-    token = create_activation_token(db, user.id)
     activation_link = f"http://localhost:8000/auth/activate?token={token}"
 
     _send_email(
@@ -90,14 +82,10 @@ def register(db: Session, email: str, password: str):
 
 
 def login(db: Session, email: str, password: str):
-    user = db.execute(
-        select(User).where(User.email == email)
-    ).scalar_one_or_none()
+    user = _get_user_by_email(db, email)
+
     if not user or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
 
     if not verify_password(password, user.hashed_password):
         raise HTTPException(
@@ -105,12 +93,7 @@ def login(db: Session, email: str, password: str):
             detail="Invalid credentials",
         )
 
-    existing_token = db.execute(
-        select(RefreshToken).where(RefreshToken.user_id == user.id)
-    ).scalar_one_or_none()
-    if existing_token:
-        db.delete(existing_token)
-        db.flush()
+    db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id))
 
     access_token_expires = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = jwt.encode(
@@ -157,8 +140,9 @@ def create_activation_token(db: Session, user_id: int):
         token=token_value,
         expires_at=datetime.now(timezone.utc) + timedelta(hours=24),
     )
+
     db.add(token)
-    db.commit()
+
     return token_value
 
 
@@ -168,10 +152,7 @@ def activate_user(db: Session, token: str):
     ).scalar_one_or_none()
 
     if not activation:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired token",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
 
     _validate_token_expiration(activation, db)
 
@@ -185,20 +166,13 @@ def activate_user(db: Session, token: str):
 
 
 def resend_activation(db: Session, email: str):
-    user = db.execute(
-        select(User).where(User.email == email)
-    ).scalar_one_or_none()
+    user = _get_user_by_email(db, email)
+
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User not found",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
 
     if user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User already activated",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already activated")
 
     token = create_activation_token(db, user.id)
     activation_link = f"http://localhost:8000/auth/activate?token={token}"
@@ -214,24 +188,16 @@ def resend_activation(db: Session, email: str):
 
 def change_password(db: Session, current_user: User, data: ChangePasswordSchema):
     if not verify_password(data.old_password, current_user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Old password is incorrect",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Old password is incorrect")
 
     try:
         validate_password_complexity(data.new_password)
     except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
     current_user.hashed_password = hash_password(data.new_password)
 
-    db.query(RefreshToken) \
-        .filter(RefreshToken.user_id == current_user.id) \
-        .delete(synchronize_session=False)
+    db.execute(delete(RefreshToken).where(RefreshToken.user_id == current_user.id))
 
     db.commit()
 
@@ -244,10 +210,7 @@ def reset_password(db: Session, token: str, new_password: str):
     ).scalar_one_or_none()
 
     if not reset_token:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired token",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
 
     _validate_token_expiration(reset_token, db)
 
@@ -255,9 +218,7 @@ def reset_password(db: Session, token: str, new_password: str):
     validate_password_complexity(new_password)
     user.hashed_password = hash_password(new_password)
 
-    db.query(RefreshToken) \
-        .filter(RefreshToken.user_id == user.id) \
-        .delete(synchronize_session=False)
+    db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id))
 
     db.delete(reset_token)
     db.commit()
@@ -266,9 +227,7 @@ def reset_password(db: Session, token: str, new_password: str):
 
 
 def forgot_password(db: Session, email: str):
-    user = db.execute(
-        select(User).where(User.email == email)
-    ).scalar_one_or_none()
+    user = _get_user_by_email(db, email)
 
     if not user or not user.is_active:
         return {"message": "If the email exists, a reset link has been sent."}
