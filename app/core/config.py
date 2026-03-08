@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     SMTP_PORT: int
     SMTP_USER: str
     SMTP_PASS: str
+    DEBUG: bool
 
 
     class Config:
