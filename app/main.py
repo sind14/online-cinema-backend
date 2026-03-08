@@ -7,6 +7,7 @@ from app.routers.movie import router as movie_router
 from app.routers.director import router as director_router
 from app.routers.star import router as star_router
 from app.routers.certification import router as certification_router
+from app.routers.cart import router as cart_router
 
 
 @asynccontextmanager
@@ -22,6 +23,7 @@ app.include_router(director_router, prefix="/directors", tags=["Directors"])
 app.include_router(star_router, prefix="/stars", tags=["Stars"])
 app.include_router(certification_router, prefix="/certifications", tags=["Certifications"])
 app.include_router(movie_router, prefix="/movies", tags=["Movies"])
+app.include_router(cart_router, prefix="/carts", tags=["Carts"])
 
 
 @app.get("/")
