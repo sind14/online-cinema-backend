@@ -1,4 +1,5 @@
 from fastapi import HTTPException, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 
@@ -8,11 +9,11 @@ class BaseCRUDService:
 
     @classmethod
     def get_all(cls, db: Session):
-        return db.query(cls.model).all()
+        return db.execute(select(cls.model)).scalars().all()
 
     @classmethod
     def get_by_id(cls, db: Session, obj_id: int):
-        return db.query(cls.model).filter(cls.model.id == obj_id).first()
+        return db.get(cls.model, obj_id)
 
     @classmethod
     def get_or_404(cls, db, obj_id: int):
@@ -28,15 +29,18 @@ class BaseCRUDService:
     def create(cls, db: Session, **data):
         if cls.unique_field:
             field_value = data.get(cls.unique_field)
-            existing = db.query(cls.model).filter(
-                getattr(cls.model, cls.unique_field) == field_value).first()
+            existing = db.execute(
+                select(cls.model).where(
+                    getattr(cls.model, cls.unique_field) == field_value
+                )
+            ).scalar_one_or_none()
 
             if existing:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"{cls.model.__name__} with this {cls.unique_field} already exists",
                 )
-            
+
         obj = cls.model(**data)
         db.add(obj)
         db.commit()
