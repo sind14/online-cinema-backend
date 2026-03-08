@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from datetime import timezone, datetime, timedelta
 from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
-from app.utils.gmail_service import send_email
+from app.services.email import send_email
 from app.auth.schemas import ChangePasswordSchema
 from app.core.security import hash_password, verify_password
 from app.core.config import settings
