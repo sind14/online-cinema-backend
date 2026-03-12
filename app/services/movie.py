@@ -7,9 +7,11 @@ from app.models.genres import Genre
 from app.models.stars import Star
 from app.models.directors import Director
 from app.models.certifications import Certification
+from app.services.base import BaseCRUDService
 
 
-class MovieService:
+class MovieService(BaseCRUDService):
+    model = Movie
 
     @staticmethod
     def _get_entities_or_404(db: Session, model, ids: list[int], field_name: str):
@@ -104,24 +106,10 @@ class MovieService:
             "items": movies,
         }
 
-    @staticmethod
-    def get_by_id(db: Session, movie_id: int):
-        return (db.query(Movie).options(
-            joinedload(Movie.certification),
-            joinedload(Movie.genres),
-            joinedload(Movie.stars),
-            joinedload(Movie.directors),
-        ).filter(Movie.id == movie_id).first())
+
 
     @staticmethod
-    def get_or_404(db, movie_id: int):
-        movie = MovieService.get_by_id(db, movie_id)
-        if not movie:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movie with id {movie_id} not found")
-        return movie
-
-    @staticmethod
-    def create(db: Session, data):
+    def create_movie(db: Session, data):
 
         certification = db.get(Certification, data.certification_id)
         if not certification:
@@ -155,7 +143,7 @@ class MovieService:
         return movie
 
     @staticmethod
-    def update(db: Session, movie: Movie, data):
+    def update_movie(db: Session, movie: Movie, data):
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():
@@ -176,8 +164,3 @@ class MovieService:
         db.refresh(movie)
 
         return movie
-
-    @staticmethod
-    def delete(db: Session, movie: Movie):
-        db.delete(movie)
-        db.commit()
