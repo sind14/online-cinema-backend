@@ -21,3 +21,4 @@ class User(Base):
     password_reset_token = relationship("PasswordResetToken", back_populates="user", uselist=False)
     refresh_token = relationship("RefreshToken", back_populates="user", uselist=False)
     cart = relationship("Cart", back_populates="user", uselist=False)
+    orders = relationship("Order", back_populates="user")
