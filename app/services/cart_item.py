@@ -10,12 +10,12 @@ class CartItemService(BaseCRUDService):
 
     @classmethod
     def add_movie(cls, db: Session, cart_id: int, movie_id: int):
-        existing = db.execute(
-            select(CartItem).where(
-                CartItem.cart_id == cart_id,
-                CartItem.movie_id == movie_id,
-            )
-        ).scalar_one_or_none()
+        stmt = select(cls.model).where(
+            cls.model.cart_id == cart_id ,
+            cls.model.movie_id == movie_id,
+        )
+
+        existing = db.scalar(stmt)
 
         if existing:
             raise HTTPException(
@@ -24,5 +24,3 @@ class CartItemService(BaseCRUDService):
             )
 
         return cls.create(db, cart_id=cart_id, movie_id=movie_id)
-
-
