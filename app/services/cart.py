@@ -12,9 +12,9 @@ class CartService:
 
     @staticmethod
     def get_cart(db: Session, user: User):
-        cart = db.execute(
-            select(Cart).where(Cart.user_id == user.id)
-        ).scalar_one_or_none()
+        stmt = select(Cart).where(Cart.user_id == user.id)
+
+        cart = db.scalar(stmt)
 
         if not cart:
             raise HTTPException(
@@ -59,9 +59,6 @@ class CartService:
     @staticmethod
     def clear_cart(db: Session, user: User):
         cart = CartService.get_cart(db, user)
-        db.execute(
-            delete(CartItem).where(
-                CartItem.cart_id == cart.id,
-            )
-        )
+        stmt = delete(CartItem).where(CartItem.cart_id == cart.id)
+        db.execute(stmt)
         db.commit()

@@ -48,7 +48,7 @@ def get_movies(
 
 @admin_router.post("/", response_model=MovieResponse)
 def create_movie(movie_in: MovieCreate, db: Session = Depends(get_db)):
-    return MovieService.create(db, movie_in)
+    return MovieService.create_movie(db, movie_in)
 
 
 @router.get("/{movie_id}", response_model=MovieDetailResponse)
@@ -59,7 +59,7 @@ def get_movie(movie_id: int, db: Session = Depends(get_db)):
 @admin_router.put("/{movie_id}", response_model=MovieResponse)
 def update_movie(movie_id: int, movie_in: MovieUpdate, db: Session = Depends(get_db)):
     movie = MovieService.get_or_404(db, movie_id)
-    return MovieService.update(db, movie, movie_in)
+    return MovieService.update_movie(db, movie, movie_in)
 
 
 @admin_router.delete("/{movie_id}", status_code=204)

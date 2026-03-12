@@ -9,14 +9,14 @@ class BaseCRUDService:
 
     @classmethod
     def get_all(cls, db: Session):
-        return db.execute(select(cls.model)).scalars().all()
+        return db.scalars(select(cls.model)).all()
 
     @classmethod
     def get_by_id(cls, db: Session, obj_id: int):
         return db.get(cls.model, obj_id)
 
     @classmethod
-    def get_or_404(cls, db, obj_id: int):
+    def get_or_404(cls, db: Session, obj_id: int):
         obj = cls.get_by_id(db, obj_id)
         if not obj:
             raise HTTPException(

@@ -9,9 +9,7 @@ from app.models.associations import movie_directors, movie_genres, movie_stars
 class Movie(Base):
     __tablename__ = "movies"
 
-    __table_args__ = (
-        UniqueConstraint("name", "year", "time", name="uq_movie_name_year_time"),
-    )
+    __table_args__ = (UniqueConstraint("name", "year", "time", name="uq_movie_name_year_time"),)
 
     id = Column(Integer, primary_key=True)
     uuid = Column(UUID(as_uuid=True), default=uuid.uuid4, unique=True, nullable=False)
@@ -31,3 +29,4 @@ class Movie(Base):
     genres = relationship("Genre", secondary=movie_genres, back_populates="movies")
     directors = relationship("Director", secondary=movie_directors, back_populates="movies")
     cart_items = relationship("CartItem", back_populates="movie")
+    order_items = relationship("OrderItem", back_populates="movie")
