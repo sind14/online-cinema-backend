@@ -12,3 +12,5 @@ from .movies import *
 from .stars import *
 from .cart_items import *
 from .carts import *
+from .order_items import *
+from .orders import *
