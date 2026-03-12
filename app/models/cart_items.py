@@ -7,7 +7,7 @@ from app.database.base import Base
 class CartItem(Base):
     __tablename__ = "cart_items"
 
-    __table_args__ = (UniqueConstraint("cart_id", "movie_id"),)
+    __table_args__ = (UniqueConstraint("cart_id", "movie_id", name="uq_cart_movie"),)
 
     id = Column(Integer, primary_key=True)
     cart_id = Column(Integer, ForeignKey("carts.id"), nullable=False)
