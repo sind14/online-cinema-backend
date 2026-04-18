@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     REDIS_URL: str
     DATABASE_URL: str
+    BASE_URL: str
     SMTP_HOST: str
     SMTP_PORT: int
     SMTP_USER: str

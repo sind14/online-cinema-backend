@@ -9,6 +9,7 @@ from app.routers.star import router as star_router
 from app.routers.certification import router as certification_router
 from app.routers.cart import router as cart_router
 from app.routers.order import router as order_router
+from app.routers.payment import router as payment_router
 
 
 @asynccontextmanager
@@ -26,7 +27,7 @@ app.include_router(certification_router, prefix="/certifications", tags=["Certif
 app.include_router(movie_router, prefix="/movies", tags=["Movies"])
 app.include_router(cart_router, prefix="/carts", tags=["Carts"])
 app.include_router(order_router, prefix="/orders", tags=["Orders"])
-
+app.include_router(payment_router, prefix="/payments", tags=["Payments"])
 
 @app.get("/")
 def root():

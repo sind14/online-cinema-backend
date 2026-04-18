@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from typing import List
 from app.database.session import get_db
 from app.schemas.star import StarCreate, StarUpdate, StarResponse
 from app.services.star import StarService
@@ -12,7 +11,7 @@ router = APIRouter()
 admin_router = APIRouter(dependencies=[Depends(require_role([UserGroupEnum.ADMIN]))])
 
 
-@router.get("/", response_model=List[StarResponse])
+@router.get("/", response_model=list[StarResponse])
 def get_stars(db: Session = Depends(get_db)):
     return StarService.get_all(db)
 

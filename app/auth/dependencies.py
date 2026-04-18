@@ -1,7 +1,6 @@
 from jose import jwt, JWTError
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from typing import List
 from sqlalchemy.orm import Session
 from app.database.session import get_db
 from app.models.users import User
@@ -38,7 +37,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     return user
 
-def require_role(required_roles: List[UserGroupEnum]):
+def require_role(required_roles: list[UserGroupEnum]):
     def role_checker(current_user: User = Depends(get_current_user)):
 
         if current_user.group.name not in required_roles:

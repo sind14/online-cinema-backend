@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from typing import List
 from app.database.session import get_db
 from app.schemas.director import DirectorCreate, DirectorUpdate, DirectorResponse
 from app.services.director import DirectorService
@@ -12,7 +11,7 @@ router = APIRouter()
 admin_router = APIRouter(dependencies=[Depends(require_role([UserGroupEnum.ADMIN]))])
 
 
-@router.get("/", response_model=List[DirectorResponse])
+@router.get("/", response_model=list[DirectorResponse])
 def get_directors(db: Session = Depends(get_db)):
     return DirectorService.get_all(db)
 

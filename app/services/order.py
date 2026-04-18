@@ -12,7 +12,7 @@ from app.models.cart_items import CartItem
 class OrderService:
 
     @staticmethod
-    def create_order_from_cart(db: Session, user: User):
+    def create_order_from_cart(db: Session, user: User) -> Order:
         stmt = (
             select(Cart)
             .options(
@@ -33,7 +33,7 @@ class OrderService:
             .join(Order)
             .where(
                 Order.user_id == user.id,
-                Order.status == OrderStatusEnum.paid,
+                Order.status == OrderStatusEnum.PAID,
                 OrderItem.movie_id.in_(movie_ids),
             )
         )
@@ -74,7 +74,7 @@ class OrderService:
         return order
 
     @staticmethod
-    def get_user_orders(db: Session, user: User):
+    def get_user_orders(db: Session, user: User) -> list[Order]:
 
         stmt = (
             select(Order)
@@ -85,10 +85,10 @@ class OrderService:
             .where(Order.user_id == user.id)
         )
 
-        return db.scalars(stmt).all()
+        return list(db.scalars(stmt))
 
     @staticmethod
-    def get_order_by_id(db: Session, user: User, order_id: int):
+    def get_order_by_id(db: Session, user: User, order_id: int) -> Order:
         stmt = (
             select(Order)
             .options(
@@ -106,13 +106,13 @@ class OrderService:
         return order
 
     @staticmethod
-    def cancel_order(db: Session, user: User, order_id: int):
+    def cancel_order(db: Session, user: User, order_id: int) -> Order:
         order = OrderService.get_order_by_id(db, user, order_id)
 
-        if order.status != OrderStatusEnum.pending:
+        if order.status != OrderStatusEnum.PENDING:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only pending orders can be canceled")
 
-        order.status = OrderStatusEnum.canceled
+        order.status = OrderStatusEnum.CANCELED
 
         db.commit()
         db.refresh(order)

@@ -1,6 +1,6 @@
 from math import ceil
 from fastapi import HTTPException, status
-from sqlalchemy import desc, asc
+from sqlalchemy import desc, asc, select
 from sqlalchemy.orm import Session, joinedload
 from app.models.movies import Movie
 from app.models.genres import Genre
@@ -15,7 +15,8 @@ class MovieService(BaseCRUDService):
 
     @staticmethod
     def _get_entities_or_404(db: Session, model, ids: list[int], field_name: str):
-        entities = db.query(model).filter(model.id.in_(ids)).all()
+        stmt = select(model).where(model.id.in_(ids))
+        entities = db.scalars(stmt).all()
 
         if len(entities) != len(ids):
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"One or more {field_name} are invalid")
@@ -38,42 +39,42 @@ class MovieService(BaseCRUDService):
             genre_id: int | None = None,
             star_id: int | None = None,
             director_id: int | None = None,
-    ):
-        query = (
-            db.query(Movie).options(
-                joinedload(Movie.certification),
+    ) -> dict:
+        stmt = (
+            select(Movie).options(
                 joinedload(Movie.genres),
                 joinedload(Movie.stars),
                 joinedload(Movie.directors),
+                joinedload(Movie.certification),
             )
         )
 
         if search:
-            query = query.filter(Movie.name.ilike(f"%{search}%"))
+            stmt = stmt.where(Movie.name.ilike(f"%{search}%"))
 
         if year:
-            query = query.filter(Movie.year == year)
+            stmt = stmt.where(Movie.year == year)
 
         if imdb_min is not None:
-            query = query.filter(Movie.imdb >= imdb_min)
+            stmt =stmt.where(Movie.imdb >= imdb_min)
 
         if imdb_max is not None:
-            query = query.filter(Movie.imdb <= imdb_max)
+            stmt = stmt.where(Movie.imdb <= imdb_max)
 
         if price_min is not None:
-            query = query.filter(Movie.price >= price_min)
+            stmt = stmt.where(Movie.price >= price_min)
 
         if price_max is not None:
-            query = query.filter(Movie.price <= price_max)
+            stmt = stmt.where(Movie.price <= price_max)
 
         if genre_id:
-            query = query.join(Movie.genres).filter(Genre.id == genre_id)
+            stmt = stmt.join(Movie.genres).where(Genre.id == genre_id)
 
         if star_id:
-            query = query.join(Movie.stars).filter(Star.id == star_id)
+            stmt = stmt.join(Movie.stars).where(Star.id == star_id)
 
         if director_id:
-            query = query.join(Movie.directors).filter(Director.id == director_id)
+            stmt = stmt.join(Movie.directors).where(Director.id == director_id)
 
         allowed_sort_fields = {
             "id": Movie.id,
@@ -89,14 +90,15 @@ class MovieService(BaseCRUDService):
         sort_column = allowed_sort_fields[sort_by]
 
         if order == "desc":
-            query = query.order_by(desc(sort_column))
+            stmt = stmt.order_by(desc(sort_column))
         else:
-            query = query.order_by(asc(sort_column))
+            stmt = stmt.order_by(asc(sort_column))
 
-        query = query.distinct()
-        total = query.count()
+        stmt = stmt.distinct()
 
-        movies = query.offset((page - 1) * page_size).limit(page_size).all()
+        total = len(db.scalars(stmt).all())
+
+        movies = db.scalars(stmt.offset((page - 1) * page_size).limit(page_size)).all()
 
         return {
             "total": total,
@@ -109,7 +111,7 @@ class MovieService(BaseCRUDService):
 
 
     @staticmethod
-    def create_movie(db: Session, data):
+    def create_movie(db: Session, data) -> Movie:
 
         certification = db.get(Certification, data.certification_id)
         if not certification:
@@ -143,7 +145,7 @@ class MovieService(BaseCRUDService):
         return movie
 
     @staticmethod
-    def update_movie(db: Session, movie: Movie, data):
+    def update_movie(db: Session, movie: Movie, data) -> Movie:
         update_data = data.model_dump(exclude_unset=True)
 
         for field, value in update_data.items():

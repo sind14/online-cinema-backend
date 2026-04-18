@@ -17,7 +17,7 @@ def get_cart(
     return CartService.get_cart(db, current_user)
 
 
-@router. post("/items", status_code=status.HTTP_201_CREATED)
+@router.post("/items", status_code=status.HTTP_201_CREATED)
 def add_movie_to_cart(
         data: CartItemCreate,
         db: Session = Depends(get_db),
