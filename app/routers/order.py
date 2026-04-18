@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from typing import List
 from app.models.users import User
 from app.auth.dependencies import get_current_user
 from app.schemas.order import OrderResponse
@@ -11,7 +10,7 @@ from app.services.order import OrderService
 router = APIRouter()
 
 
-@router.get("/", response_model=List[OrderResponse])
+@router.get("/", response_model=list[OrderResponse])
 def get_orders(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return OrderService.get_user_orders(db, current_user)
 

@@ -8,7 +8,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    email = Column(String(255), unique=True, index=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -22,3 +22,4 @@ class User(Base):
     refresh_token = relationship("RefreshToken", back_populates="user", uselist=False)
     cart = relationship("Cart", back_populates="user", uselist=False)
     orders = relationship("Order", back_populates="user")
+    payments = relationship("Payment", back_populates="user")

@@ -1,5 +1,5 @@
 from app.models.certifications import Certification
-from app.services.base import  BaseCRUDService
+from app.services.base import BaseCRUDService
 
 class CertificationService(BaseCRUDService):
     model = Certification

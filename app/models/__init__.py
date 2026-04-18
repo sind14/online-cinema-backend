@@ -14,3 +14,5 @@ from .cart_items import *
 from .carts import *
 from .order_items import *
 from .orders import *
+from .payments import *
+from .payment_items import *

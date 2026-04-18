@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
-from typing import List
 from app.database.session import get_db
 from app.schemas.certification import CertificationCreate, CertificationUpdate, CertificationResponse
 from app.services.certification import CertificationService
@@ -11,7 +10,7 @@ router = APIRouter()
 admin_router = APIRouter(dependencies=[Depends(require_role([UserGroupEnum.ADMIN]))])
 
 
-@router.get("/", response_model=List[CertificationResponse])
+@router.get("/", response_model=list[CertificationResponse])
 def get_certifications(db: Session = Depends(get_db)):
     return CertificationService.get_all(db)
 

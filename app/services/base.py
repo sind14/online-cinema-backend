@@ -8,7 +8,7 @@ class BaseCRUDService:
     unique_field = None
 
     @classmethod
-    def get_all(cls, db: Session):
+    def get_all(cls, db: Session) -> list:
         return db.scalars(select(cls.model)).all()
 
     @classmethod
@@ -58,6 +58,6 @@ class BaseCRUDService:
         return obj
 
     @classmethod
-    def delete(cls, db: Session, obj):
+    def delete(cls, db: Session, obj) -> None:
         db.delete(obj)
         db.commit()

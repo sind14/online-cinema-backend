@@ -70,7 +70,7 @@ def register(db: Session, email: str, password: str):
     db.commit()
     db.refresh(user)
 
-    activation_link = f"http://localhost:8000/auth/activate?token={token}"
+    activation_link = f"{settings.BASE_URL}/auth/activate?token={token}"
 
     _send_email(
         user.email,
@@ -175,7 +175,7 @@ def resend_activation(db: Session, email: str):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already activated")
 
     token = create_activation_token(db, user.id)
-    activation_link = f"http://localhost:8000/auth/activate?token={token}"
+    activation_link = f"{settings.BASE_URL}/auth/activate?token={token}"
 
     _send_email(
         user.email,
@@ -245,7 +245,7 @@ def forgot_password(db: Session, email: str):
     db.add(reset_token)
     db.commit()
 
-    reset_link = f"http://localhost:8000/auth/reset-password?token={token_value}"
+    reset_link = f"{settings.BASE_URL}/auth/reset-password?token={token_value}"
 
     _send_email(
         user.email,

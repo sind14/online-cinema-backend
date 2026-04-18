@@ -1,6 +1,5 @@
 from sqlalchemy import Column, Integer, ForeignKey, DECIMAL, UniqueConstraint
 from sqlalchemy.orm import relationship
-
 from app.database.base import Base
 
 
@@ -16,3 +15,4 @@ class OrderItem(Base):
 
     order = relationship("Order", back_populates="items")
     movie = relationship("Movie", back_populates="order_items")
+    payment_items = relationship("PaymentItem", back_populates="order_item")

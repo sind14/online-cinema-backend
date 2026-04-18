@@ -8,6 +8,6 @@ class Genre(Base):
     __tablename__ = "genres"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(100), unique=True, index=True, nullable=False)
+    name = Column(String(100), unique=True, nullable=False)
 
     movies = relationship("Movie", secondary=movie_genres, back_populates="genres")

@@ -8,6 +8,6 @@ class Director(Base):
     __tablename__ = "directors"
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(150), nullable=False, unique=True, index=True)
+    name = Column(String(150), nullable=False, unique=True)
 
     movies = relationship("Movie", secondary=movie_directors, back_populates="directors")
