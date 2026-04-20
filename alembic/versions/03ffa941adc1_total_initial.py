@@ -1,8 +1,8 @@
-"""initial schema
+"""total_initial
 
-Revision ID: 12af8a958b82
+Revision ID: 03ffa941adc1
 Revises: 
-Create Date: 2026-02-27 20:14:08.652825
+Create Date: 2026-04-20 14:52:32.000670
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '12af8a958b82'
+revision: str = '03ffa941adc1'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -30,21 +30,21 @@ def upgrade() -> None:
     op.create_table('directors',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=150), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
     )
-    op.create_index(op.f('ix_directors_name'), 'directors', ['name'], unique=True)
     op.create_table('genres',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=100), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
     )
-    op.create_index(op.f('ix_genres_name'), 'genres', ['name'], unique=True)
     op.create_table('stars',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=150), nullable=False),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('name')
     )
-    op.create_index(op.f('ix_stars_name'), 'stars', ['name'], unique=True)
     op.create_table('user_groups',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.Enum('USER', 'MODERATOR', 'ADMIN', name='user_group_enum'), nullable=False),
@@ -75,13 +75,13 @@ def upgrade() -> None:
     sa.Column('email', sa.String(length=255), nullable=False),
     sa.Column('hashed_password', sa.String(length=255), nullable=False),
     sa.Column('is_active', sa.Boolean(), nullable=False),
-    sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
     sa.Column('group_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['group_id'], ['user_groups.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email')
     )
-    op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_group_id'), 'users', ['group_id'], unique=False)
     op.create_table('activation_tokens',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -91,6 +91,13 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('token'),
+    sa.UniqueConstraint('user_id')
+    )
+    op.create_table('carts',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('user_id')
     )
     op.create_table('movie_directors',
@@ -113,6 +120,15 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['movie_id'], ['movies.id'], ),
     sa.ForeignKeyConstraint(['star_id'], ['stars.id'], ),
     sa.PrimaryKeyConstraint('movie_id', 'star_id')
+    )
+    op.create_table('orders',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('status', sa.Enum('PENDING', 'PAID', 'CANCELED', name='order_status_enum'), nullable=False),
+    sa.Column('total_amount', sa.DECIMAL(precision=10, scale=2), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('password_reset_tokens',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -147,30 +163,76 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('user_id')
     )
+    op.create_table('cart_items',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('cart_id', sa.Integer(), nullable=False),
+    sa.Column('movie_id', sa.Integer(), nullable=False),
+    sa.Column('added_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+    sa.ForeignKeyConstraint(['cart_id'], ['carts.id'], ),
+    sa.ForeignKeyConstraint(['movie_id'], ['movies.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('cart_id', 'movie_id', name='uq_cart_movie')
+    )
+    op.create_table('order_items',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('order_id', sa.Integer(), nullable=False),
+    sa.Column('movie_id', sa.Integer(), nullable=False),
+    sa.Column('price_at_order', sa.DECIMAL(precision=10, scale=2), nullable=False),
+    sa.ForeignKeyConstraint(['movie_id'], ['movies.id'], ),
+    sa.ForeignKeyConstraint(['order_id'], ['orders.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('order_id', 'movie_id', name='uq_order_movie')
+    )
+    op.create_index(op.f('ix_order_items_order_id'), 'order_items', ['order_id'], unique=False)
+    op.create_table('payments',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('order_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+    sa.Column('status', sa.Enum('SUCCESSFUL', 'CANCELED', 'REFUNDED', name='payment_status_enum'), nullable=False),
+    sa.Column('amount', sa.DECIMAL(precision=10, scale=2), nullable=False),
+    sa.Column('external_payment_id', sa.String(), nullable=False),
+    sa.ForeignKeyConstraint(['order_id'], ['orders.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('order_id')
+    )
+    op.create_table('payment_items',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('payment_id', sa.Integer(), nullable=False),
+    sa.Column('order_item_id', sa.Integer(), nullable=False),
+    sa.Column('price_at_payment', sa.DECIMAL(precision=10, scale=2), nullable=False),
+    sa.ForeignKeyConstraint(['order_item_id'], ['order_items.id'], ),
+    sa.ForeignKeyConstraint(['payment_id'], ['payments.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     """Downgrade schema."""
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table('payment_items')
+    op.drop_table('payments')
+    op.drop_index(op.f('ix_order_items_order_id'), table_name='order_items')
+    op.drop_table('order_items')
+    op.drop_table('cart_items')
     op.drop_table('user_profiles')
     op.drop_table('refresh_tokens')
     op.drop_table('password_reset_tokens')
+    op.drop_table('orders')
     op.drop_table('movie_stars')
     op.drop_table('movie_genres')
     op.drop_table('movie_directors')
+    op.drop_table('carts')
     op.drop_table('activation_tokens')
     op.drop_index(op.f('ix_users_group_id'), table_name='users')
-    op.drop_index(op.f('ix_users_email'), table_name='users')
     op.drop_table('users')
     op.drop_index(op.f('ix_movies_name'), table_name='movies')
     op.drop_table('movies')
     op.drop_table('user_groups')
-    op.drop_index(op.f('ix_stars_name'), table_name='stars')
     op.drop_table('stars')
-    op.drop_index(op.f('ix_genres_name'), table_name='genres')
     op.drop_table('genres')
-    op.drop_index(op.f('ix_directors_name'), table_name='directors')
     op.drop_table('directors')
     op.drop_index(op.f('ix_certifications_name'), table_name='certifications')
     op.drop_table('certifications')
