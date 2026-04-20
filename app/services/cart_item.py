@@ -11,7 +11,7 @@ class CartItemService(BaseCRUDService):
     @classmethod
     def add_movie(cls, db: Session, cart_id: int, movie_id: int) -> CartItem:
         stmt = select(cls.model).where(
-            cls.model.cart_id == cart_id ,
+            cls.model.cart_id == cart_id,
             cls.model.movie_id == movie_id,
         )
 

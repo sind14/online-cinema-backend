@@ -5,6 +5,7 @@ from app.database.session import SessionLocal
 from app.models.activation_tokens import ActivationToken
 from app.worker.celery_app import celery_app
 
+
 @celery_app.task
 def delete_expired_tokens() -> None:
     db: Session = SessionLocal()

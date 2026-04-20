@@ -1,5 +1,6 @@
 from app.models.stars import Star
-from app.services.base import  BaseCRUDService
+from app.services.base import BaseCRUDService
+
 
 class StarService(BaseCRUDService):
     model = Star

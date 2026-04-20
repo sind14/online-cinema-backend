@@ -35,7 +35,9 @@ def _validate_token_expiration(token_obj, db: Session):
 
     if expires_at < datetime.now(timezone.utc):
         db.delete(token_obj)
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
+        )
 
 
 def _delete_existing_token(model, user_id: int, db: Session) -> None:
@@ -44,7 +46,9 @@ def _delete_existing_token(model, user_id: int, db: Session) -> None:
 
 def register(db: Session, email: str, password: str):
     if _get_user_by_email(db, email):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists"
+        )
 
     validate_password_complexity(password)
     hashed_password = hash_password(password)
@@ -85,7 +89,9 @@ def login(db: Session, email: str, password: str):
     user = _get_user_by_email(db, email)
 
     if not user or not user.is_active:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
+        )
 
     if not verify_password(password, user.hashed_password):
         raise HTTPException(
@@ -95,21 +101,29 @@ def login(db: Session, email: str, password: str):
 
     db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id))
 
-    access_token_expires = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = datetime.now(timezone.utc) + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
     access_token = jwt.encode(
         {"sub": str(user.id), "exp": access_token_expires},
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
 
-    refresh_token_expires = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    refresh_token_expires = datetime.now(timezone.utc) + timedelta(
+        days=REFRESH_TOKEN_EXPIRE_DAYS
+    )
     refresh_token_str = jwt.encode(
         {"sub": str(user.id), "exp": refresh_token_expires},
         SECRET_KEY,
         algorithm=ALGORITHM,
     )
 
-    db.add(RefreshToken(user_id=user.id, token=refresh_token_str, expires_at=refresh_token_expires))
+    db.add(
+        RefreshToken(
+            user_id=user.id, token=refresh_token_str, expires_at=refresh_token_expires
+        )
+    )
     db.commit()
 
     return {
@@ -152,7 +166,9 @@ def activate_user(db: Session, token: str):
     ).scalar_one_or_none()
 
     if not activation:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
+        )
 
     _validate_token_expiration(activation, db)
 
@@ -169,10 +185,14 @@ def resend_activation(db: Session, email: str):
     user = _get_user_by_email(db, email)
 
     if not user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User not found"
+        )
 
     if user.is_active:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already activated")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="User already activated"
+        )
 
     token = create_activation_token(db, user.id)
     activation_link = f"{settings.BASE_URL}/auth/activate?token={token}"
@@ -188,7 +208,9 @@ def resend_activation(db: Session, email: str):
 
 def change_password(db: Session, current_user: User, data: ChangePasswordSchema):
     if not verify_password(data.old_password, current_user.hashed_password):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Old password is incorrect")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Old password is incorrect"
+        )
 
     try:
         validate_password_complexity(data.new_password)
@@ -210,7 +232,9 @@ def reset_password(db: Session, token: str, new_password: str):
     ).scalar_one_or_none()
 
     if not reset_token:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
+        )
 
     _validate_token_expiration(reset_token, db)
 

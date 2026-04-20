@@ -19,34 +19,35 @@ class MovieService(BaseCRUDService):
         entities = db.scalars(stmt).all()
 
         if len(entities) != len(ids):
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"One or more {field_name} are invalid")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"One or more {field_name} are invalid",
+            )
 
         return entities
 
     @staticmethod
     def get_all(
-            db: Session,
-            page: int = 1,
-            page_size: int = 10,
-            sort_by: str = "id",
-            order: str = "asc",
-            search: str | None = None,
-            year: int | None = None,
-            imdb_min: float | None = None,
-            imdb_max: float | None = None,
-            price_min: float | None = None,
-            price_max: float | None = None,
-            genre_id: int | None = None,
-            star_id: int | None = None,
-            director_id: int | None = None,
+        db: Session,
+        page: int = 1,
+        page_size: int = 10,
+        sort_by: str = "id",
+        order: str = "asc",
+        search: str | None = None,
+        year: int | None = None,
+        imdb_min: float | None = None,
+        imdb_max: float | None = None,
+        price_min: float | None = None,
+        price_max: float | None = None,
+        genre_id: int | None = None,
+        star_id: int | None = None,
+        director_id: int | None = None,
     ) -> dict:
-        stmt = (
-            select(Movie).options(
-                joinedload(Movie.genres),
-                joinedload(Movie.stars),
-                joinedload(Movie.directors),
-                joinedload(Movie.certification),
-            )
+        stmt = select(Movie).options(
+            joinedload(Movie.genres),
+            joinedload(Movie.stars),
+            joinedload(Movie.directors),
+            joinedload(Movie.certification),
         )
 
         if search:
@@ -56,7 +57,7 @@ class MovieService(BaseCRUDService):
             stmt = stmt.where(Movie.year == year)
 
         if imdb_min is not None:
-            stmt =stmt.where(Movie.imdb >= imdb_min)
+            stmt = stmt.where(Movie.imdb >= imdb_min)
 
         if imdb_max is not None:
             stmt = stmt.where(Movie.imdb <= imdb_max)
@@ -85,7 +86,10 @@ class MovieService(BaseCRUDService):
         }
 
         if sort_by not in allowed_sort_fields:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid sort field: {sort_by}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid sort field: {sort_by}",
+            )
 
         sort_column = allowed_sort_fields[sort_by]
 
@@ -108,18 +112,23 @@ class MovieService(BaseCRUDService):
             "items": movies,
         }
 
-
-
     @staticmethod
     def create_movie(db: Session, data) -> Movie:
 
         certification = db.get(Certification, data.certification_id)
         if not certification:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid certification id")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid certification id",
+            )
 
-        genres = MovieService._get_entities_or_404(db, Genre, data.genre_ids, "genre_ids")
+        genres = MovieService._get_entities_or_404(
+            db, Genre, data.genre_ids, "genre_ids"
+        )
         stars = MovieService._get_entities_or_404(db, Star, data.star_ids, "star_ids")
-        directors = MovieService._get_entities_or_404(db, Director, data.director_ids, "director_ids")
+        directors = MovieService._get_entities_or_404(
+            db, Director, data.director_ids, "director_ids"
+        )
 
         movie = Movie(
             name=data.name,
@@ -154,13 +163,19 @@ class MovieService(BaseCRUDService):
             setattr(movie, field, value)
 
         if data.genre_ids is not None:
-            movie.genres = MovieService._get_entities_or_404(db, Genre, data.genre_ids, "genre_ids")
+            movie.genres = MovieService._get_entities_or_404(
+                db, Genre, data.genre_ids, "genre_ids"
+            )
 
         if data.star_ids is not None:
-            movie.stars = MovieService._get_entities_or_404(db, Star, data.star_ids, "star_ids")
+            movie.stars = MovieService._get_entities_or_404(
+                db, Star, data.star_ids, "star_ids"
+            )
 
         if data.director_ids is not None:
-            movie.directors = MovieService._get_entities_or_404(db, Director, data.director_ids, "director_ids")
+            movie.directors = MovieService._get_entities_or_404(
+                db, Director, data.director_ids, "director_ids"
+            )
 
         db.commit()
         db.refresh(movie)

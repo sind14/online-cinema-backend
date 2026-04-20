@@ -1,7 +1,6 @@
 from sqlalchemy import Table, Column, Integer, ForeignKey
 from app.database.base import Base
 
-
 movie_genres = Table(
     "movie_genres",
     Base.metadata,

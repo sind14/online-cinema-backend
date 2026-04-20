@@ -1,5 +1,6 @@
 from app.models.directors import Director
-from app.services.base import  BaseCRUDService
+from app.services.base import BaseCRUDService
+
 
 class DirectorService(BaseCRUDService):
     model = Director

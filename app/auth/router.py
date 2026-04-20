@@ -13,7 +13,6 @@ from app.auth.schemas import (
     ResetPasswordSchema,
 )
 
-
 router = APIRouter()
 
 
@@ -40,9 +39,9 @@ def logout(data: LogoutSchema, db: Session = Depends(get_db)):
 
 @router.post("/change-password")
 def change_user_password(
-        data: ChangePasswordSchema,
-        db: Session = Depends(get_db),
-        current_user=Depends(get_current_user)
+    data: ChangePasswordSchema,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
 ):
     return auth_service.change_password(db, current_user, data)
 
@@ -70,5 +69,6 @@ def admin_only(current_user=Depends(require_role([UserGroupEnum.ADMIN]))):
 
 @router.get("/moderator-area")
 def moderator_area(
-    current_user = Depends(require_role([UserGroupEnum.ADMIN, UserGroupEnum.MODERATOR]))):
+    current_user=Depends(require_role([UserGroupEnum.ADMIN, UserGroupEnum.MODERATOR]))
+):
     return {"message": f"Moderator access granted for {current_user.email}"}

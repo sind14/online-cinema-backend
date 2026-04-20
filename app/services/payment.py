@@ -17,7 +17,7 @@ class PaymentService:
             payment_item = PaymentItem(
                 payment_id=payment.id,
                 order_item_id=item.id,
-                price_at_payment=item.price_at_order
+                price_at_payment=item.price_at_order,
             )
 
             db.add(payment_item)
@@ -27,13 +27,15 @@ class PaymentService:
         order = OrderService.get_order_by_id(db, user, payment_data.order_id)
 
         if order.status == OrderStatusEnum.PAID:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Order already paid")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Order already paid"
+            )
 
         payment = Payment(
             user_id=user.id,
             order_id=order.id,
             amount=order.total_amount,
-            external_payment_id="stripe_test_id"
+            external_payment_id="stripe_test_id",
         )
 
         db.add(payment)
@@ -49,18 +51,16 @@ class PaymentService:
         return payment
 
     @staticmethod
-    def get_payment(db: Session,user_id: int, payment_id: int) -> Payment:
+    def get_payment(db: Session, user_id: int, payment_id: int) -> Payment:
         stmt = select(Payment).where(
-            Payment.id == payment_id,
-            Payment.user_id == user_id
+            Payment.id == payment_id, Payment.user_id == user_id
         )
 
         payment = db.scalar(stmt)
 
         if not payment:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Payment not found"
+                status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found"
             )
 
         return payment

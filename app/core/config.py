@@ -14,9 +14,8 @@ class Settings(BaseSettings):
     SMTP_PASS: str
     DEBUG: bool
 
-
     class Config:
         env_file = ".env"
 
 
-settings = Settings() # type: ignore
+settings = Settings()  # type: ignore
