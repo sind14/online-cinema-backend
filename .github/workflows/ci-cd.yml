@@ -2,7 +2,7 @@ name: CI/CD
 
 on:
   push:
-    branches: [develop, main]
+    branches: [develop, master]
   pull_request:
     branches: [develop]
 
@@ -32,7 +32,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install Poetry
         run: pip install poetry
@@ -40,9 +40,9 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
 
-      - name: Run linters
+      - name: Run quality checks
         run: |
-          poetry run flake8 .
+          poetry check
           poetry run black --check .
 
       - name: Run tests
@@ -60,7 +60,7 @@ jobs:
 
   deploy:
     needs: ci
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
 
     steps:
@@ -73,6 +73,6 @@ jobs:
           script: |
             cd /home/ubuntu/online-cinema-backend
 
-            git pull origin main
+            git pull origin master
 
             docker compose up -d --build
