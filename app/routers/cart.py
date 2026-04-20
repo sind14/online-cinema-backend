@@ -11,17 +11,17 @@ router = APIRouter()
 
 @router.get("/", response_model=CartResponse)
 def get_cart(
-        db: Session = Depends(get_db),
-        current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return CartService.get_cart(db, current_user)
 
 
 @router.post("/items", status_code=status.HTTP_201_CREATED)
 def add_movie_to_cart(
-        data: CartItemCreate,
-        db: Session = Depends(get_db),
-        current_user: User = Depends(get_current_user),
+    data: CartItemCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ):
     return CartService.add_movie_to_cart(db, current_user, data.movie_id)
 
@@ -41,4 +41,3 @@ def clear_cart(
     current_user: User = Depends(get_current_user),
 ):
     CartService.clear_cart(db, current_user)
-

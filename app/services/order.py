@@ -15,16 +15,16 @@ class OrderService:
     def create_order_from_cart(db: Session, user: User) -> Order:
         stmt = (
             select(Cart)
-            .options(
-                selectinload(Cart.items).selectinload(CartItem.movie)
-            )
+            .options(selectinload(Cart.items).selectinload(CartItem.movie))
             .where(Cart.user_id == user.id)
         )
 
         cart = db.scalar(stmt)
 
         if not cart or not cart.items:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cart is empty")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Cart is empty"
+            )
 
         movie_ids = [item.movie_id for item in cart.items]
 
@@ -41,7 +41,10 @@ class OrderService:
         purchased_movies = db.scalars(purchased_stmt).all()
 
         if purchased_movies:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Some movies are already purchased")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Some movies are already purchased",
+            )
 
         order = Order(user_id=user.id, total_amount=Decimal("0"))
 
@@ -64,9 +67,7 @@ class OrderService:
 
         order.total_amount = total
 
-        db.execute(
-            delete(CartItem).where(CartItem.cart_id == cart.id)
-        )
+        db.execute(delete(CartItem).where(CartItem.cart_id == cart.id))
 
         db.commit()
         db.refresh(order)
@@ -78,10 +79,7 @@ class OrderService:
 
         stmt = (
             select(Order)
-            .options(
-                selectinload(Order.items)
-                .selectinload(OrderItem.movie)
-            )
+            .options(selectinload(Order.items).selectinload(OrderItem.movie))
             .where(Order.user_id == user.id)
         )
 
@@ -91,17 +89,16 @@ class OrderService:
     def get_order_by_id(db: Session, user: User, order_id: int) -> Order:
         stmt = (
             select(Order)
-            .options(
-                selectinload(Order.items)
-                .selectinload(OrderItem.movie)
-            )
+            .options(selectinload(Order.items).selectinload(OrderItem.movie))
             .where(Order.id == order_id, Order.user_id == user.id)
         )
 
         order = db.scalar(stmt)
 
         if not order:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Order not found"
+            )
 
         return order
 
@@ -110,7 +107,10 @@ class OrderService:
         order = OrderService.get_order_by_id(db, user, order_id)
 
         if order.status != OrderStatusEnum.PENDING:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only pending orders can be canceled")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only pending orders can be canceled",
+            )
 
         order.status = OrderStatusEnum.CANCELED
 

@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database.base import Base
 
+
 class Cart(Base):
     __tablename__ = "carts"
 

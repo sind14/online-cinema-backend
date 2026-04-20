@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.database.session import SessionLocal
 from app.models.user_groups import UserGroup, UserGroupEnum
 
+
 def seed_user_groups():
     db: Session = SessionLocal()
     try:
@@ -12,6 +13,7 @@ def seed_user_groups():
         db.commit()
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     seed_user_groups()

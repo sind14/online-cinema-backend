@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database.base import Base
 
+
 class PaymentStatusEnum(str, enum.Enum):
     SUCCESSFUL = "successful"
     CANCELED = "canceled"
@@ -16,7 +17,9 @@ class Payment(Base):
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     order_id = Column(Integer, ForeignKey("orders.id"), nullable=False, unique=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     status = Column(
         Enum(PaymentStatusEnum, name="payment_status_enum"),
         nullable=False,
@@ -27,4 +30,6 @@ class Payment(Base):
 
     user = relationship("User", back_populates="payments")
     order = relationship("Order", back_populates="payment")
-    payment_items = relationship("PaymentItem", back_populates="payment", cascade="all, delete-orphan")
+    payment_items = relationship(
+        "PaymentItem", back_populates="payment", cascade="all, delete-orphan"
+    )

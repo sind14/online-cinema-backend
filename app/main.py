@@ -17,17 +17,21 @@ async def lifespan(_: FastAPI):
     seed_user_groups()
     yield
 
+
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(genre_router, prefix="/genres", tags=["Genres"])
 app.include_router(director_router, prefix="/directors", tags=["Directors"])
 app.include_router(star_router, prefix="/stars", tags=["Stars"])
-app.include_router(certification_router, prefix="/certifications", tags=["Certifications"])
+app.include_router(
+    certification_router, prefix="/certifications", tags=["Certifications"]
+)
 app.include_router(movie_router, prefix="/movies", tags=["Movies"])
 app.include_router(cart_router, prefix="/carts", tags=["Carts"])
 app.include_router(order_router, prefix="/orders", tags=["Orders"])
 app.include_router(payment_router, prefix="/payments", tags=["Payments"])
+
 
 @app.get("/")
 def root():

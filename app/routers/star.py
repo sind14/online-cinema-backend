@@ -6,7 +6,6 @@ from app.services.star import StarService
 from app.auth.dependencies import require_role
 from app.models.user_groups import UserGroupEnum
 
-
 router = APIRouter()
 admin_router = APIRouter(dependencies=[Depends(require_role([UserGroupEnum.ADMIN]))])
 
@@ -16,7 +15,9 @@ def get_stars(db: Session = Depends(get_db)):
     return StarService.get_all(db)
 
 
-@admin_router.post("/", response_model=StarResponse, status_code=status.HTTP_201_CREATED)
+@admin_router.post(
+    "/", response_model=StarResponse, status_code=status.HTTP_201_CREATED
+)
 def create_star(star_in: StarCreate, db: Session = Depends(get_db)):
     return StarService.create(db, **star_in.model_dump())
 
