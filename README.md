@@ -53,7 +53,7 @@ erDiagram
 
     USER_PROFILES {
         int id PK
-        int user_id FK UK
+        int user_id FK
         string first_name
         string last_name
         string avatar
@@ -64,21 +64,21 @@ erDiagram
 
     ACTIVATION_TOKENS {
         int id PK
-        int user_id FK UK
+        int user_id FK
         string token UK
         datetime expires_at
     }
 
     PASSWORD_RESET_TOKENS {
         int id PK
-        int user_id FK UK
+        int user_id FK
         string token UK
         datetime expires_at
     }
 
     REFRESH_TOKENS {
         int id PK
-        int user_id FK UK
+        int user_id FK
         string token UK
         datetime expires_at
     }
@@ -135,7 +135,7 @@ erDiagram
 
     CARTS {
         int id PK
-        int user_id FK UK
+        int user_id FK
     }
 
     CART_ITEMS {
@@ -163,7 +163,7 @@ erDiagram
     PAYMENTS {
         int id PK
         int user_id FK
-        int order_id FK UK
+        int order_id FK
         datetime created_at
         enum status
         decimal amount
