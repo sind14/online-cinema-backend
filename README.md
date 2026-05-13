@@ -1,8 +1,37 @@
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.133-green)
+![Tests](https://img.shields.io/badge/tests-108-success)
+![Coverage](https://img.shields.io/badge/coverage-90%25-success)
+![Docker](https://img.shields.io/badge/docker-enabled-blue)
+
 # Online Cinema API
 
-A production-style backend API for an online cinema platform built with FastAPI. It supports user authentication, movie management, carts, orders, and payments.
+A backend API for an online cinema platform built with FastAPI. It supports user authentication, movie management, carts, orders, and payments.
+
+## Live API
+
+| Service | URL |
+|---|---|
+| API Base URL | http://3.79.209.106:8000 |
+| Swagger Documentation | http://3.79.209.106:8000/docs |
+
+## Test Credentials
+
+Admin account:
+- Email: cinemaonlineproject@gmail.com
+- Password: Password-123
 
 ## Database Diagram
+
+## Features
+
+- **Authentication**: JWT-based auth with Argon2 password hashing.
+- **Movies & Media**: Management of movies, genres, directors, stars, and certifications.
+- **Shopping**: Cart management and order processing.
+- **Payments**: Payment tracking system.
+- **Background Tasks**: Celery and Celery Beat for scheduled tasks, such as cleaning expired activation tokens.
+- **Database**: PostgreSQL with SQLAlchemy ORM and Alembic migrations.
+- **Caching**: Redis for caching and as a broker for Celery.
 
 ```mermaid
 erDiagram
@@ -178,15 +207,29 @@ erDiagram
     }
 ```
 
-## Features
+## Quality Assurance
 
-- **Authentication**: JWT-based auth with Argon2 password hashing.
-- **Movies & Media**: Management of movies, genres, directors, stars, and certifications.
-- **Shopping**: Cart management and order processing.
-- **Payments**: Payment tracking system.
-- **Background Tasks**: Celery and Celery Beat for scheduled tasks, such as cleaning expired activation tokens.
-- **Database**: PostgreSQL with SQLAlchemy ORM and Alembic migrations.
-- **Caching**: Redis for caching and as a broker for Celery.
+- 108 automated tests
+- ~90% coverage
+- CI/CD pipeline
+- Dockerized deployment
+
+## Screenshots
+
+### Swagger API Documentation
+![Swagger](screenshots/swagger.png)
+
+### JWT Authentication
+![Login](screenshots/login.png)
+
+### Protected Admin Endpoint
+![Admin](screenshots/post-genres.png)
+
+### AWS EC2 Deployment
+![AWS](screenshots/aws-ec2.png)
+
+### Docker Containers
+![Docker](screenshots/docker-containers.png)
 
 ## Architecture
 
