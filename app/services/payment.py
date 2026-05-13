@@ -26,9 +26,9 @@ class PaymentService:
     def create_payment(db: Session, user: User, payment_data: PaymentCreate) -> Payment:
         order = OrderService.get_order_by_id(db, user, payment_data.order_id)
 
-        if order.status == OrderStatusEnum.PAID:
+        if order.status != OrderStatusEnum.PENDING:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Order already paid"
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Order cannot be paid"
             )
 
         payment = Payment(
