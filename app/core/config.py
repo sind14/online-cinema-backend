@@ -1,4 +1,5 @@
-from pydantic_settings import BaseSettings
+import os
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -14,8 +15,10 @@ class Settings(BaseSettings):
     SMTP_PASS: str
     DEBUG: bool
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(
+        env_file=os.getenv("ENV_FILE", ".env"),
+        extra="ignore",
+    )
 
 
 settings = Settings()  # type: ignore
