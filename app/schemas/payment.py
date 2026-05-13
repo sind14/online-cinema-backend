@@ -25,8 +25,8 @@ class PaymentBase(BaseModel):
     amount: Decimal
 
 
-class PaymentCreate(PaymentBase):
-    pass
+class PaymentCreate(BaseModel):
+    order_id: int
 
 
 class PaymentResponse(PaymentBase):

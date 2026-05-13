@@ -35,6 +35,8 @@ def _validate_token_expiration(token_obj, db: Session):
 
     if expires_at < datetime.now(timezone.utc):
         db.delete(token_obj)
+        db.commit()
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired token"
         )
@@ -49,8 +51,11 @@ def register(db: Session, email: str, password: str):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists"
         )
+    try:
+        validate_password_complexity(password)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-    validate_password_complexity(password)
     hashed_password = hash_password(password)
 
     group = db.execute(
@@ -156,7 +161,7 @@ def create_activation_token(db: Session, user_id: int):
     )
 
     db.add(token)
-
+    db.flush()
     return token_value
 
 
@@ -195,6 +200,9 @@ def resend_activation(db: Session, email: str):
         )
 
     token = create_activation_token(db, user.id)
+
+    db.commit()
+
     activation_link = f"{settings.BASE_URL}/auth/activate?token={token}"
 
     _send_email(
@@ -239,7 +247,12 @@ def reset_password(db: Session, token: str, new_password: str):
     _validate_token_expiration(reset_token, db)
 
     user = reset_token.user
-    validate_password_complexity(new_password)
+
+    try:
+        validate_password_complexity(new_password)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
     user.hashed_password = hash_password(new_password)
 
     db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id))

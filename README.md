@@ -1,6 +1,6 @@
 # Online Cinema API
 
-A backend API for an online cinema platform built with FastAPI. It supports user authentication, movie management, carts, orders, and payments.
+A production-style backend API for an online cinema platform built with FastAPI. It supports user authentication, movie management, carts, orders, and payments.
 
 ## Database Diagram
 
@@ -188,6 +188,20 @@ erDiagram
 - **Database**: PostgreSQL with SQLAlchemy ORM and Alembic migrations.
 - **Caching**: Redis for caching and as a broker for Celery.
 
+## Architecture
+
+The project follows a layered architecture:
+- **Routers** handle HTTP requests and responses.
+- **Services** contain business logic and validation.
+- **SQLAlchemy models** represent database entities and relationships.
+- **Schemas** are used for request/response validation with Pydantic.
+
+Typical request flow:
+
+`Router -> Service Layer -> SQLAlchemy Models -> PostgreSQL`
+
+Background tasks such as cleanup of expired tokens are handled by Celery workers and Celery Beat.
+
 ## Tech Stack
 
 - **Language**: [Python 3.12+](https://www.python.org/)
@@ -248,22 +262,22 @@ The API will be available at `http://localhost:8000`. Documentation (Swagger UI)
 
 ## Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SECRET_KEY` | Secret key for JWT signing | `secret_key` |
-| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token expiration time | `30` |
-| `REFRESH_TOKEN_EXPIRE_DAYS` | Refresh token expiration time in days | `7` |
-| `DATABASE_URL` | SQLAlchemy database URL | - |
-| `REDIS_URL` | Redis connection URL | - |
+| Variable | Description | Default                 |
+|----------|-------------|-------------------------|
+| `SECRET_KEY` | Secret key for JWT signing | `secret_key`            |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Token expiration time | `30`                    |
+| `REFRESH_TOKEN_EXPIRE_DAYS` | Refresh token expiration time in days | `7`                     |
+| `DATABASE_URL` | SQLAlchemy database URL | -                       |
+| `REDIS_URL` | Redis connection URL | -                       |
 | `BASE_URL` | Base URL used for generated links | `http://localhost:8000` |
-| `DB_USER` | PostgreSQL username used by Docker Compose | - |
-| `DB_PASSWORD` | PostgreSQL password used by Docker Compose | - |
-| `DB_NAME` | PostgreSQL database name used by Docker Compose | - |
-| `SMTP_HOST` | SMTP server for emails | - |
-| `SMTP_PORT` | SMTP server port | `587` |
-| `SMTP_USER` | SMTP username | - |
-| `SMTP_PASS` | SMTP password | - |
-| `DEBUG` | Enable/disable debug mode | `False` |
+| `DB_USER` | PostgreSQL username used by Docker Compose | -                       |
+| `DB_PASSWORD` | PostgreSQL password used by Docker Compose | -                       |
+| `DB_NAME` | PostgreSQL database name used by Docker Compose | -                       |
+| `SMTP_HOST` | SMTP server for emails | -                       |
+| `SMTP_PORT` | SMTP server port | `465`                   |
+| `SMTP_USER` | SMTP username | -                       |
+| `SMTP_PASS` | SMTP password | -                       |
+| `DEBUG` | Enable/disable debug mode | `False`                 |
 
 Refer to `.env.example` for the full list of required variables.
 
@@ -273,7 +287,21 @@ Refer to `.env.example` for the full list of required variables.
 - `app/seed.py`: Used to seed initial data (e.g., user groups). Note: it is currently called in `app/main.py` lifespan.
 - `docker-compose exec celery celery -A app.worker.celery_app worker --loglevel=info`: Start Celery worker manually.
 
+## CI/CD & Deployment
+
+The project includes a GitHub Actions CI/CD pipeline that:
+
+- runs automated tests,
+- checks code formatting,
+- builds Docker containers,
+- deploys the application to a remote Ubuntu server over SSH.
+
+Deployment is fully Dockerized using Docker Compose.
+
 ## Tests
+
+- 108 automated tests
+- ~90% application coverage
 
 Run tests inside the FastAPI container:
 
