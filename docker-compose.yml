@@ -33,7 +33,9 @@ services:
 
   fastapi:
     restart: always
-    build: .
+    build:
+      context: .
+    image: online-cinema-app
     command: >
       sh -c "
       alembic upgrade head &&
@@ -53,7 +55,7 @@ services:
 
   celery:
     restart: always
-    build: .
+    image: online-cinema-app
     command: celery -A app.worker.celery_app worker --loglevel=info
     env_file:
       - .env
@@ -67,7 +69,7 @@ services:
 
   celery-beat:
     restart: always
-    build: .
+    image: online-cinema-app
     command: celery -A app.worker.celery_app beat --loglevel=info
     env_file:
       - .env

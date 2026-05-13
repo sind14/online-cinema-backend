@@ -39,7 +39,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install Poetry
-        run: pip install poetry
+        run: pip install poetry==2.3.2
 
       - name: Install dependencies
         run: poetry install --no-interaction --no-root
@@ -76,8 +76,20 @@ jobs:
           key: ${{ secrets.EC2_KEY }}
           command_timeout: 30m
           script: |
+            set -e
+
             cd /home/ubuntu/online-cinema-backend
 
+            echo "=== GIT PULL ==="
             git pull origin master
 
-            docker compose up -d --build
+            echo "=== DOCKER BUILD ==="
+            docker compose build --progress=plain
+
+            echo "=== DOCKER UP ==="
+            docker compose up -d
+
+            echo "=== DOCKER PS ==="
+            docker compose ps
+
+            echo "=== DONE ==="
