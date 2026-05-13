@@ -2,6 +2,7 @@ import pytest
 from fastapi import HTTPException, status
 from app.services.cart import CartService
 
+
 def test_get_cart_returns_user_cart(db_session, active_user, cart):
     result = CartService.get_cart(db_session, active_user)
 
@@ -9,7 +10,9 @@ def test_get_cart_returns_user_cart(db_session, active_user, cart):
     assert result.user_id == active_user.id
 
 
-def test_get_cart_returns_cart_with_items(db_session, active_user, cart, cart_item_factory, movie_factory):
+def test_get_cart_returns_cart_with_items(
+    db_session, active_user, cart, cart_item_factory, movie_factory
+):
     movie = movie_factory()
     cart_item = cart_item_factory(cart.id, movie.id)
     result = CartService.get_cart(db_session, active_user)
@@ -35,7 +38,9 @@ def test_add_movie_to_cart(db_session, active_user, cart, movie_factory):
     assert result.items[0].movie_id == movie.id
 
 
-def test_add_movie_to_cart_raises_for_existing_item(db_session, active_user, cart, movie_factory):
+def test_add_movie_to_cart_raises_for_existing_item(
+    db_session, active_user, cart, movie_factory
+):
     movie = movie_factory()
     CartService.add_movie_to_cart(db_session, active_user, movie.id)
 
@@ -63,7 +68,10 @@ def test_remove_movie_from_cart(db_session, active_user, cart, movie_factory):
     assert len(result.items) == 0
     assert result.items == []
 
-def test_remove_movie_from_cart_raises_for_nonexistent_movie(db_session, active_user, cart):
+
+def test_remove_movie_from_cart_raises_for_nonexistent_movie(
+    db_session, active_user, cart
+):
     with pytest.raises(HTTPException) as exc_info:
         CartService.remove_movie_from_cart(db_session, active_user, 999)
 

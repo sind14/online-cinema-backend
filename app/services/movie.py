@@ -102,9 +102,11 @@ class MovieService(BaseCRUDService):
 
         total = len(db.scalars(stmt).unique().all())
 
-        movies = db.scalars(
-            stmt.offset((page - 1) * page_size).limit(page_size)
-        ).unique().all()
+        movies = (
+            db.scalars(stmt.offset((page - 1) * page_size).limit(page_size))
+            .unique()
+            .all()
+        )
 
         return {
             "total": total,

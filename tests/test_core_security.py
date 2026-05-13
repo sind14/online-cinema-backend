@@ -1,5 +1,9 @@
 import pytest
-from app.core.security import hash_password, verify_password, validate_password_complexity
+from app.core.security import (
+    hash_password,
+    verify_password,
+    validate_password_complexity,
+)
 
 
 def test_hash_password_returns_hashed_value():
@@ -30,7 +34,9 @@ def test_validate_password_complexity_accepts_valid_password():
 
 def test_validate_password_complexity_rejects_short_password():
     password = "Pas-1"
-    with pytest.raises(ValueError, match="Password must be at least 8 characters long."):
+    with pytest.raises(
+        ValueError, match="Password must be at least 8 characters long."
+    ):
         validate_password_complexity(password)
 
 
@@ -42,13 +48,17 @@ def test_validate_password_complexity_rejects_long_password():
 
 def test_validate_password_complexity_rejects_no_uppercase_letter():
     password = "password-123"
-    with pytest.raises(ValueError, match="Password must contain at least one uppercase letter."):
+    with pytest.raises(
+        ValueError, match="Password must contain at least one uppercase letter."
+    ):
         validate_password_complexity(password)
 
 
 def test_validate_password_complexity_rejects_no_lowercase_letter():
     password = "PASSWORD-123"
-    with pytest.raises(ValueError, match="Password must contain at least one lowercase letter."):
+    with pytest.raises(
+        ValueError, match="Password must contain at least one lowercase letter."
+    ):
         validate_password_complexity(password)
 
 
@@ -60,5 +70,7 @@ def test_validate_password_complexity_rejects_no_digit():
 
 def test_validate_password_complexity_rejects_no_special_character():
     password = "Password1123"
-    with pytest.raises(ValueError, match="Password must contain at least one special character."):
+    with pytest.raises(
+        ValueError, match="Password must contain at least one special character."
+    ):
         validate_password_complexity(password)

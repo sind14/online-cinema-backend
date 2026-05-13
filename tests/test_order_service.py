@@ -4,7 +4,9 @@ from app.services.order import OrderService
 from app.models.orders import OrderStatusEnum
 
 
-def test_create_order_from_cart(db_session, active_user, cart, movie_factory, cart_item_factory):
+def test_create_order_from_cart(
+    db_session, active_user, cart, movie_factory, cart_item_factory
+):
     movie = movie_factory()
     cart_item_factory(cart.id, movie.id)
     order = OrderService.create_order_from_cart(db_session, active_user)
@@ -28,7 +30,9 @@ def test_create_order_from_cart_raises_for_empty_cart(db_session, active_user, c
     assert exc_info.value.detail == "Cart is empty"
 
 
-def test_create_order_from_cart_raises_when_movie_already_purchased(db_session, active_user, cart, movie_factory, cart_item_factory):
+def test_create_order_from_cart_raises_when_movie_already_purchased(
+    db_session, active_user, cart, movie_factory, cart_item_factory
+):
     movie = movie_factory()
     cart_item_factory(cart.id, movie.id)
     order = OrderService.create_order_from_cart(db_session, active_user)
@@ -54,13 +58,12 @@ def test_get_user_orders(db_session, active_user, order_factory):
     assert len(orders) == 2
     assert orders[0].id == order1.id
     assert orders[1].id == order2.id
-    assert all(
-        order.user_id == active_user.id
-        for order in orders
-    )
+    assert all(order.user_id == active_user.id for order in orders)
 
 
-def test_get_user_orders_returns_only_user_orders(db_session, active_user, order_factory, user_factory):
+def test_get_user_orders_returns_only_user_orders(
+    db_session, active_user, order_factory, user_factory
+):
     other_user = user_factory()
     order_factory(user_id=active_user.id)
     order_factory(user_id=other_user.id)
@@ -90,7 +93,9 @@ def test_get_order_by_id_raises_for_nonexistent_order(db_session, active_user):
     assert exc_info.value.detail == "Order not found"
 
 
-def test_get_order_by_id_raises_for_other_user_order(db_session, active_user, order_factory, user_factory):
+def test_get_order_by_id_raises_for_other_user_order(
+    db_session, active_user, order_factory, user_factory
+):
     other_user = user_factory()
     order = order_factory(user_id=other_user.id)
 
@@ -109,7 +114,9 @@ def test_cancel_order(db_session, active_user, order_factory):
     assert result.status == OrderStatusEnum.CANCELED
 
 
-def test_cancel_order_raises_for_not_pending_order(db_session, active_user, order_factory):
+def test_cancel_order_raises_for_not_pending_order(
+    db_session, active_user, order_factory
+):
     order = order_factory(user_id=active_user.id, status=OrderStatusEnum.PAID)
     with pytest.raises(HTTPException) as exc_info:
         OrderService.cancel_order(db_session, active_user, order.id)
@@ -118,7 +125,9 @@ def test_cancel_order_raises_for_not_pending_order(db_session, active_user, orde
     assert exc_info.value.detail == "Only pending orders can be canceled"
 
 
-def test_cancel_order_raises_for_other_user_order(db_session, active_user, user_factory, order_factory):
+def test_cancel_order_raises_for_other_user_order(
+    db_session, active_user, user_factory, order_factory
+):
     other_user = user_factory()
     order = order_factory(user_id=other_user.id)
     with pytest.raises(HTTPException) as exc_info:

@@ -36,11 +36,15 @@ def test_get_user_by_email_returns_none_when_user_does_not_exist(db_session):
     assert result is None
 
 
-def test_validate_token_expiration_allows_valid_token(db_session, valid_activation_token):
+def test_validate_token_expiration_allows_valid_token(
+    db_session, valid_activation_token
+):
     _validate_token_expiration(valid_activation_token, db_session)
 
 
-def test_validate_token_expiration_raises_for_expired_token(db_session, expired_activation_token):
+def test_validate_token_expiration_raises_for_expired_token(
+    db_session, expired_activation_token
+):
     with pytest.raises(HTTPException) as exc_info:
         _validate_token_expiration(expired_activation_token, db_session)
 
@@ -48,13 +52,17 @@ def test_validate_token_expiration_raises_for_expired_token(db_session, expired_
     assert exc_info.value.detail == "Invalid or expired token"
 
 
-def test_delete_existing_token_removes_token_from_db(db_session, valid_activation_token):
+def test_delete_existing_token_removes_token_from_db(
+    db_session, valid_activation_token
+):
     _delete_existing_token(ActivationToken, valid_activation_token.user_id, db_session)
 
     db_session.commit()
 
     token_in_db = db_session.execute(
-        select(ActivationToken).where(ActivationToken.user_id == valid_activation_token.user_id)
+        select(ActivationToken).where(
+            ActivationToken.user_id == valid_activation_token.user_id
+        )
     ).scalar_one_or_none()
 
     assert token_in_db is None
@@ -77,7 +85,9 @@ def test_logout_returns_success_when_token_does_not_exist(db_session):
     assert result == {"message": "Successfully logged out"}
 
 
-def test_register_creates_user_cart_activation_token_and_sends_email(db_session, user_group, monkeypatch):
+def test_register_creates_user_cart_activation_token_and_sends_email(
+    db_session, user_group, monkeypatch
+):
     email = "newuser@example.com"
     password = "Password-123"
     sent_emails = []
@@ -93,8 +103,12 @@ def test_register_creates_user_cart_activation_token_and_sends_email(db_session,
 
     monkeypatch.setattr("app.auth.service._send_email", mock_send_email)
     user = register(db_session, email, password)
-    cart = db_session.execute(select(Cart).where(Cart.user_id == user.id)).scalar_one_or_none()
-    activation_token_stmt = select(ActivationToken).where(ActivationToken.user_id == user.id)
+    cart = db_session.execute(
+        select(Cart).where(Cart.user_id == user.id)
+    ).scalar_one_or_none()
+    activation_token_stmt = select(ActivationToken).where(
+        ActivationToken.user_id == user.id
+    )
     activation_token = db_session.execute(activation_token_stmt).scalar_one_or_none()
 
     assert user.email == email
@@ -108,7 +122,9 @@ def test_register_creates_user_cart_activation_token_and_sends_email(db_session,
     assert activation_token is not None
 
 
-def test_register_raises_when_email_already_exists(db_session, active_user, monkeypatch):
+def test_register_raises_when_email_already_exists(
+    db_session, active_user, monkeypatch
+):
     sent_emails = []
 
     def mock_send_email(to_email, subject, message):
@@ -137,7 +153,9 @@ def test_register_raises_when_password_is_invalid(db_session):
     with pytest.raises(HTTPException) as exc_info:
         register(db_session, email, invalid_password)
 
-    result = db_session.execute(select(User).where(User.email == email)).scalar_one_or_none()
+    result = db_session.execute(
+        select(User).where(User.email == email)
+    ).scalar_one_or_none()
 
     assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
     assert exc_info.value.detail == "Password must be at least 8 characters long."
@@ -237,7 +255,9 @@ def test_change_password_raises_when_new_password_is_invalid(db_session, active_
     assert exc_info.value.detail == "Password must be at least 8 characters long."
 
 
-def test_change_password_updates_user_password_and_deletes_refresh_tokens(db_session, active_user):
+def test_change_password_updates_user_password_and_deletes_refresh_tokens(
+    db_session, active_user
+):
     new_password = "New-Password-123"
     old_password = "Password-123"
     result = change_password(
@@ -261,7 +281,9 @@ def test_activate_user_raises_when_token_not_found(db_session):
     assert exc_info.value.detail == "Invalid or expired token"
 
 
-def test_activate_user_raises_when_token_is_expired(db_session, expired_activation_token):
+def test_activate_user_raises_when_token_is_expired(
+    db_session, expired_activation_token
+):
     with pytest.raises(HTTPException) as exc_info:
         activate_user(db_session, expired_activation_token.token)
 
@@ -269,7 +291,9 @@ def test_activate_user_raises_when_token_is_expired(db_session, expired_activati
     assert exc_info.value.detail == "Invalid or expired token"
 
 
-def test_activate_user_activates_user_and_deletes_token(db_session, inactive_user, valid_activation_token):
+def test_activate_user_activates_user_and_deletes_token(
+    db_session, inactive_user, valid_activation_token
+):
     returned_user = activate_user(db_session, valid_activation_token.token)
 
     user_in_db = db_session.execute(
@@ -301,7 +325,9 @@ def test_resend_activation_raises_when_user_already_activated(db_session, active
     assert exc_info.value.detail == "User already activated"
 
 
-def test_resend_activation_creates_token_and_sends_email(db_session, inactive_user, monkeypatch):
+def test_resend_activation_creates_token_and_sends_email(
+    db_session, inactive_user, monkeypatch
+):
     email = inactive_user.email
     sent_emails = []
 
@@ -317,7 +343,9 @@ def test_resend_activation_creates_token_and_sends_email(db_session, inactive_us
     monkeypatch.setattr("app.auth.service._send_email", mock_send_email)
     returned_token = resend_activation(db_session, email)
 
-    token_stmt = select(ActivationToken).where(ActivationToken.user_id == inactive_user.id)
+    token_stmt = select(ActivationToken).where(
+        ActivationToken.user_id == inactive_user.id
+    )
     token = db_session.execute(token_stmt).scalar_one_or_none()
 
     assert returned_token == token.token
@@ -352,15 +380,15 @@ def test_reset_password_raises_when_password_is_invalid(db_session, valid_reset_
     assert exc_info.value.detail == "Password must be at least 8 characters long."
 
 
-def test_reset_password_updates_password_deletes_refresh_tokens_and_token(db_session, valid_reset_token):
+def test_reset_password_updates_password_deletes_refresh_tokens_and_token(
+    db_session, valid_reset_token
+):
     new_password = "New-Password-123"
     result = reset_password(db_session, valid_reset_token.token, new_password)
     user_id = valid_reset_token.user_id
 
     refresh_token_in_db = db_session.execute(
-        select(RefreshToken).where(
-            RefreshToken.user_id == user_id
-        )
+        select(RefreshToken).where(RefreshToken.user_id == user_id)
     ).scalar_one_or_none()
 
     token_in_db = db_session.execute(
@@ -394,18 +422,16 @@ def test_forgot_password_returns_success_when_user_not_found(db_session, monkeyp
     monkeypatch.setattr("app.auth.service._send_email", mock_send_email)
 
     result = forgot_password(db_session, "missing@example.com")
-    token_in_db = db_session.execute(
-        select(PasswordResetToken)
-    ).scalar_one_or_none()
+    token_in_db = db_session.execute(select(PasswordResetToken)).scalar_one_or_none()
 
-    assert result == {
-        "message": "If the email exists, a reset link has been sent."
-    }
+    assert result == {"message": "If the email exists, a reset link has been sent."}
     assert len(sent_emails) == 0
     assert token_in_db is None
 
 
-def test_forgot_password_returns_success_when_user_is_inactive(db_session, inactive_user, monkeypatch):
+def test_forgot_password_returns_success_when_user_is_inactive(
+    db_session, inactive_user, monkeypatch
+):
     email = inactive_user.email
     sent_emails = []
 
@@ -421,13 +447,13 @@ def test_forgot_password_returns_success_when_user_is_inactive(db_session, inact
     monkeypatch.setattr("app.auth.service._send_email", mock_send_email)
     result = forgot_password(db_session, email)
 
-    assert result == {
-        "message": "If the email exists, a reset link has been sent."
-    }
+    assert result == {"message": "If the email exists, a reset link has been sent."}
     assert len(sent_emails) == 0
 
 
-def test_forgot_password_creates_reset_token_and_sends_email(db_session, active_user, monkeypatch):
+def test_forgot_password_creates_reset_token_and_sends_email(
+    db_session, active_user, monkeypatch
+):
     email = active_user.email
     sent_emails = []
 
@@ -443,9 +469,7 @@ def test_forgot_password_creates_reset_token_and_sends_email(db_session, active_
     monkeypatch.setattr("app.auth.service._send_email", mock_send_email)
     result = forgot_password(db_session, email)
     token_in_db = db_session.execute(
-        select(PasswordResetToken).where(
-            PasswordResetToken.user_id == active_user.id
-        )
+        select(PasswordResetToken).where(PasswordResetToken.user_id == active_user.id)
     ).scalar_one_or_none()
 
     assert result == {"message": "If the email exists, a reset link has been sent."}

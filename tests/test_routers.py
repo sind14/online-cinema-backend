@@ -4,6 +4,7 @@ def test_admin_endpoint_requires_authentication(client):
     assert response.status_code == 401
     assert response.json()["detail"] == "Not authenticated"
 
+
 def test_get_stars(client, star_factory):
     star_factory(name="John Doe")
     response = client.get("/stars/")
@@ -55,6 +56,3 @@ def test_get_cart_requires_authentication(client):
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Not authenticated"
-
-
-

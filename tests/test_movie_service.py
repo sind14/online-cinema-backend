@@ -82,7 +82,9 @@ def test_get_all_returns_first_page_results(db_session, movie_factory):
     movie_factory(name="Movie 1")
     movie_factory(name="Movie 2")
 
-    result = MovieService.get_all(db_session, page=1, page_size=1, sort_by="id", order="asc")
+    result = MovieService.get_all(
+        db_session, page=1, page_size=1, sort_by="id", order="asc"
+    )
 
     assert result["total"] == 2
     assert len(result["items"]) == 1
@@ -93,7 +95,9 @@ def test_get_all_returns_second_page_results(db_session, movie_factory):
     movie_factory(name="Movie 1")
     movie_factory(name="Movie 2")
 
-    result = MovieService.get_all(db_session, page=2, page_size=1, sort_by="id", order="asc")
+    result = MovieService.get_all(
+        db_session, page=2, page_size=1, sort_by="id", order="asc"
+    )
 
     assert result["total"] == 2
     assert len(result["items"]) == 1
@@ -115,7 +119,9 @@ def test_create_movie(db_session, movie_create_data_factory):
     assert movie.certification is not None
 
 
-def test_create_movie_raises_for_invalid_certification(db_session, movie_create_data_factory):
+def test_create_movie_raises_for_invalid_certification(
+    db_session, movie_create_data_factory
+):
     data = movie_create_data_factory(certification_id=999)
 
     with pytest.raises(HTTPException) as exc_info:
@@ -125,7 +131,9 @@ def test_create_movie_raises_for_invalid_certification(db_session, movie_create_
     assert exc_info.value.detail == "Invalid certification id"
 
 
-def test_create_movie_raises_for_invalid_genre_ids(db_session, movie_create_data_factory):
+def test_create_movie_raises_for_invalid_genre_ids(
+    db_session, movie_create_data_factory
+):
     data = movie_create_data_factory(genre_ids=[999])
     with pytest.raises(HTTPException) as exc_info:
         MovieService.create_movie(db_session, data)
@@ -134,7 +142,9 @@ def test_create_movie_raises_for_invalid_genre_ids(db_session, movie_create_data
     assert exc_info.value.detail == "One or more genre_ids are invalid"
 
 
-def test_create_movie_raises_for_invalid_director_ids(db_session, movie_create_data_factory):
+def test_create_movie_raises_for_invalid_director_ids(
+    db_session, movie_create_data_factory
+):
     data = movie_create_data_factory(director_ids=[999])
     with pytest.raises(HTTPException) as exc_info:
         MovieService.create_movie(db_session, data)
@@ -143,7 +153,9 @@ def test_create_movie_raises_for_invalid_director_ids(db_session, movie_create_d
     assert exc_info.value.detail == "One or more director_ids are invalid"
 
 
-def test_create_movie_raises_for_invalid_star_ids(db_session, movie_create_data_factory):
+def test_create_movie_raises_for_invalid_star_ids(
+    db_session, movie_create_data_factory
+):
     data = movie_create_data_factory(star_ids=[999])
     with pytest.raises(HTTPException) as exc_info:
         MovieService.create_movie(db_session, data)
@@ -153,11 +165,11 @@ def test_create_movie_raises_for_invalid_star_ids(db_session, movie_create_data_
 
 
 def test_create_movie_with_multiple_relationships(
-        db_session,
-        movie_create_data_factory,
-        genre_factory,
-        star_factory,
-        director_factory,
+    db_session,
+    movie_create_data_factory,
+    genre_factory,
+    star_factory,
+    director_factory,
 ):
     genre1 = genre_factory(name="Genre 1")
     genre2 = genre_factory(name="Genre 2")
@@ -213,10 +225,11 @@ def test_update_movie(db_session, movie_create_data_factory):
 
 
 def test_update_movie_with_relationships(
-        db_session,
-        movie_create_data_factory,
-        genre_factory, star_factory,
-        director_factory,
+    db_session,
+    movie_create_data_factory,
+    genre_factory,
+    star_factory,
+    director_factory,
 ):
     movie = MovieService.create_movie(db_session, movie_create_data_factory())
     old_genre = movie.genres[0]

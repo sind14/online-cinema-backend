@@ -174,6 +174,7 @@ def certification(db_session):
 
     return certification
 
+
 @pytest.fixture
 def certification_factory(db_session):
     def create_certification(name="Test Certification"):
@@ -231,7 +232,9 @@ def director_factory(db_session):
 
 
 @pytest.fixture
-def movie_create_data_factory(certification_factory, genre_factory, star_factory, director_factory):
+def movie_create_data_factory(
+    certification_factory, genre_factory, star_factory, director_factory
+):
     def create_data(**kwargs):
         genre = genre_factory()
         star = star_factory()
@@ -259,7 +262,7 @@ def movie_create_data_factory(certification_factory, genre_factory, star_factory
 
 @pytest.fixture
 def movie_factory(db_session, certification):
-    def create_movie( **kwargs):
+    def create_movie(**kwargs):
         movie = Movie(
             name=kwargs.get("name", "Test Movie"),
             year=kwargs.get("year", 2020),
