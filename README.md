@@ -3,6 +3,7 @@
 ![Tests](https://img.shields.io/badge/tests-108-success)
 ![Coverage](https://img.shields.io/badge/coverage-90%25-success)
 ![Docker](https://img.shields.io/badge/docker-enabled-blue)
+![CI](https://github.com/sind14/online-cinema-backend/actions/workflows/ci-cd.yml/badge.svg)
 
 # Online Cinema API
 
@@ -13,11 +14,13 @@ A backend API for an online cinema platform built with FastAPI. It supports user
 | Service | URL |
 |---|---|
 | API Base URL | http://3.79.209.106:8000 |
-| Swagger Documentation | http://3.79.209.106:8000/docs |
+| Swagger Documentation | [Swagger Docs](http://3.79.209.106:8000/docs) |
 
-## Test Credentials
+## Demo Access
 
-Admin account:
+The API includes a pre-seeded admin account for testing protected endpoints via Swagger UI.
+
+Admin credentials:
 - Email: cinemaonlineproject@gmail.com
 - Password: Password-123
 
@@ -216,20 +219,23 @@ erDiagram
 
 ## Screenshots
 
-### Swagger API Documentation
+### Swagger API Interface
 ![Swagger](screenshots/swagger.png)
 
-### JWT Authentication
+### JWT Authentication Flow
 ![Login](screenshots/login.png)
 
 ### Protected Admin Endpoint
 ![Admin](screenshots/post-genres.png)
 
-### AWS EC2 Deployment
+### AWS EC2 Infrastructure
 ![AWS](screenshots/aws-ec2.png)
 
-### Docker Containers
+### Dockerized Services on AWS EC2
 ![Docker](screenshots/docker-containers.png)
+
+### GitHub Actions CI/CD Pipeline
+![CI](screenshots/ci-deploy.png)
 
 ## Architecture
 
@@ -340,6 +346,7 @@ The project includes a GitHub Actions CI/CD pipeline that:
 - deploys the application to a remote Ubuntu server over SSH.
 
 Deployment is fully Dockerized using Docker Compose.
+The application is deployed on AWS EC2 using GitHub Actions CI/CD.
 
 ## Tests
 
