@@ -21,3 +21,9 @@ ENV/
 # Celery
 celerybeat-schedule
 celerybeat-schedule.*
+
+# Tests
+.coverage
+htmlcov/
+pytest-run.log
+.pytest_cache/
