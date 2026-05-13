@@ -16,7 +16,7 @@ class OrderItemResponse(BaseModel):
 class OrderResponse(BaseModel):
     id: int
     status: OrderStatusEnum
-    total_amount: float
+    total_amount: Decimal
     created_at: datetime
     items: list[OrderItemResponse]
 
