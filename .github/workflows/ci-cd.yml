@@ -83,8 +83,12 @@ jobs:
             echo "=== GIT PULL ==="
             git pull origin master
 
+            echo "=== CLEANUP ==="
+            docker compose down || true
+            docker system prune -a -f
+
             echo "=== DOCKER BUILD ==="
-            docker compose build --progress=plain
+            docker compose build
 
             echo "=== DOCKER UP ==="
             docker compose up -d
